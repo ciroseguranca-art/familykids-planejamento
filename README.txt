@@ -12,3 +12,4 @@ Como hospedar:
 
 Observação:
 Esta é uma versão inicial de aplicativo web baseado na estrutura da planilha enviada.
+Atualização 05/07/2026 - teste de publicação
