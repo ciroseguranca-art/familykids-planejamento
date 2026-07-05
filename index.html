@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FamilyKids • Planejamento 2026</title>
+  <style>
+    :root{--bg:#f6f7fb;--card:#fff;--ink:#172033;--muted:#6b7280;--brand:#2563eb;--good:#047857;--bad:#b91c1c;--line:#e5e7eb;--soft:#eef2ff}
+    *{box-sizing:border-box} body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink)}
+    header{background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:#fff;padding:24px 18px} header h1{margin:0;font-size:24px} header p{margin:6px 0 0;opacity:.9}
+    main{max-width:1180px;margin:0 auto;padding:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:0 8px 24px rgba(15,23,42,.05)}
+    .kpi small{display:block;color:var(--muted);font-size:12px}.kpi strong{display:block;margin-top:6px;font-size:22px}.good{color:var(--good)}.bad{color:var(--bad)}
+    nav{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:10px 14px;cursor:pointer}.tab.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    section{display:none}section.active{display:block}.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}.toolbar button,.toolbar label{border:0;background:var(--brand);color:#fff;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:700}.toolbar .secondary{background:#374151}.toolbar .danger{background:#b91c1c} input[type=file]{display:none}
+    table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden} th,td{border-bottom:1px solid var(--line);padding:9px;text-align:right;white-space:nowrap} th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left} th{background:#111827;color:#fff;font-size:12px;position:sticky;top:0} td input{width:105px;border:1px solid #d1d5db;border-radius:8px;padding:7px;text-align:right;background:#fff} td input.month{width:120px;text-align:left}.total-row td{font-weight:700;background:#f9fafb}.note{color:var(--muted);font-size:13px;line-height:1.45}.scroll{overflow:auto;border-radius:12px;border:1px solid var(--line)}
+    .formgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.formgrid label{font-size:13px;color:var(--muted)}.formgrid input{display:block;width:100%;margin-top:5px;border:1px solid #d1d5db;border-radius:10px;padding:10px}
+    .bar{height:16px;background:#e5e7eb;border-radius:999px;overflow:hidden}.bar span{display:block;height:100%;background:var(--brand);width:0}.summary{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.grid,.summary,.formgrid{grid-template-columns:1fr}.card{border-radius:12px} th,td{font-size:12px;padding:7px} td input{width:88px} header h1{font-size:21px}}
+  </style>
+</head>
+<body>
+<header><h1>FamilyKids • Planejamento Financeiro 2026</h1><p>Aplicativo inspirado na sua planilha: despesas, fornecedores, fluxo de caixa, CDB, metas e saldo mensal.</p></header>
+<main>
+  <div class="grid" id="kpis"></div>
+  <nav>
+    <button class="tab active" data-tab="dash">Resumo</button><button class="tab" data-tab="despesas">Despesas e Fornecedores</button><button class="tab" data-tab="fluxo">Fluxo de Caixa</button><button class="tab" data-tab="metas">Metas</button><button class="tab" data-tab="backup">Backup</button>
+  </nav>
+  <section id="dash" class="active">
+    <div class="summary">
+      <div class="card"><h2>Resumo mensal</h2><div class="scroll"><table id="tblResumo"></table></div></div>
+      <div class="card"><h2>Força das vendas x meta</h2><p class="note">A barra compara vendas acumuladas com a meta alvo calculada.</p><div class="bar"><span id="metaBar"></span></div><p id="metaTxt"></p><h3>Leitura automática</h3><p id="diagnostico" class="note"></p></div>
+    </div>
+  </section>
+  <section id="despesas"><div class="card"><h2>Despesas e fornecedores</h2><p class="note">Valores negativos representam pagamentos/saídas. O app soma fornecedores, despesas e total de cada mês automaticamente.</p><div class="toolbar"><button onclick="addFornecedor()">+ Fornecedor</button><button onclick="addMes()">+ Mês</button></div><div class="scroll"><table id="tblDespesas"></table></div></div></section>
+  <section id="fluxo"><div class="card"><h2>Fluxo de caixa</h2><p class="note">Informe vendas, Pronampe e rendimento/aporte CDB. O total de saída vem da tela de despesas.</p><div class="scroll"><table id="tblFluxo"></table></div></div></section>
+  <section id="metas"><div class="card"><h2>Configurações e metas</h2><div class="formgrid"><label>Capital investido <input id="capital" type="number" step="0.01"></label><label>Rendimento CDB mensal (%) <input id="cdb" type="number" step="0.01"></label><label>Multiplicador meta alvo <input id="multiplicador" type="number" step="0.01"></label></div><p class="note">Meta mínima = fornecedores + despesas. Meta alvo = fornecedores × multiplicador + despesas.</p></div></section>
+  <section id="backup"><div class="card"><h2>Backup e uso</h2><p>Este aplicativo salva os dados no próprio navegador deste aparelho. Para trocar de celular/computador, exporte o backup.</p><div class="toolbar"><button onclick="exportJSON()">Exportar backup</button><label>Importar backup<input type="file" accept="application/json" onchange="importJSON(event)"></label><button class="secondary" onclick="downloadCSV()">Exportar CSV</button><button class="danger" onclick="resetApp()">Restaurar dados iniciais</button></div><p class="note">Para hospedar: envie este arquivo <b>index.html</b> para Netlify, Vercel ou GitHub Pages. Também funciona offline, abrindo o arquivo no navegador.</p></div></section>
+</main>
+<script>
+const months=[['01/2026','Janeiro'],['02/2026','Fevereiro'],['03/2026','Março'],['04/2026','Abril'],['05/2026','Maio'],['06/2026','Junho'],['07/2026','Julho'],['08/2026','Agosto'],['09/2026','Setembro'],['10/2026','Outubro'],['11/2026','Novembro'],['12/2026','Dezembro']];
+const defaultData={config:{capital:67000,cdbPct:0.98,multiplicador:2.2},fornecedores:['Shark Nubank','Shark Sicredi','Traffos','Forne. à vista','Trueway','Kiki Xodó','Bochechinha','Fakini inverno','Tilesul verão','Fakini verão'],despesas:{},fluxo:{}};
+months.forEach((m,i)=>{defaultData.despesas[m[0]]={mes:m[1],forn:[0,0,0,0,0,0,0,0,0,0],despesa:0,pronampe:0};defaultData.fluxo[m[0]]={mes:m[1],vendas:0,pronampe:0,cdb:0};});
+Object.assign(defaultData.despesas['01/2026'],{forn:[0,0,0,-10670.12,0,0,0,0,0,0]});
+Object.assign(defaultData.despesas['02/2026'],{forn:[0,0,0,-4216.94,0,0,0,0,0,0]});
+Object.assign(defaultData.despesas['03/2026'],{forn:[-1091.11,0,0,-7314,0,0,0,0,0,0],despesa:-2311.95,pronampe:18345});
+Object.assign(defaultData.despesas['04/2026'],{forn:[-1091.11,-1091.11,-388.43,-6233,-1433.5,0,0,0,0,0],despesa:-2694.84});
+Object.assign(defaultData.despesas['05/2026'],{forn:[-1091.11,-1091.11,-388.43,-3058,-1433.5,0,-389.85,0,0,0],despesa:-3677.14});
+Object.assign(defaultData.despesas['06/2026'],{forn:[-1091.11,-1091.11,-388.43,0,-1433.5,-1442.09,-389.85,0,0,0],despesa:-2942.49});
+Object.assign(defaultData.despesas['07/2026'],{forn:[-1091.11,-1091.11,0,0,-1433.5,-1442.09,-389.85,-1000,0,0],despesa:-2848.5});
+Object.assign(defaultData.despesas['08/2026'],{forn:[-1091.11,-1091.11,0,0,0,-1442.09,-389.85,-1000,-1876.1,-10000],despesa:-2141.74});
+Object.assign(defaultData.despesas['09/2026'],{forn:[0,-1091.11,0,0,0,0,-389.85,-1000,-1876.1,0],despesa:-2141.74});
+Object.assign(defaultData.despesas['10/2026'],{forn:[0,0,0,0,0,0,-389.85,-1000,-1876.1,0],despesa:-2141.74});
+Object.assign(defaultData.despesas['11/2026'],{forn:[0,0,0,0,0,0,0,-1000,-1876.1,0],despesa:-2141.74});
+Object.assign(defaultData.despesas['12/2026'],{forn:[0,0,0,0,0,0,0,-1000,-1876.1,0],despesa:-2141.74});
+[['01/2026',7699.32,0,0],['02/2026',10704.56,0,0],['03/2026',9932.57,0,0],['04/2026',21687.29,0,1036.93],['05/2026',19307.41,0,0],['06/2026',20828.07,0,562.69],['07/2026',2444.49,0,656.6],['08/2026',1262.09,0,656.6],['09/2026',435.83,0,656.6],['10/2026',0,0,656.6],['11/2026',0,0,656.6],['12/2026',0,0,656.6]].forEach(r=>defaultData.fluxo[r[0]]={mes:defaultData.fluxo[r[0]].mes,vendas:r[1],pronampe:r[2],cdb:r[3]});
+let data=JSON.parse(localStorage.getItem('familykids-planejamento')||'null')||structuredClone(defaultData);
+function brl(n){return (n||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});} function num(v){return parseFloat(String(v).replace(',','.'))||0;} function save(){localStorage.setItem('familykids-planejamento',JSON.stringify(data));}
+function totals(ref){let d=data.despesas[ref], forn=d.forn.reduce((a,b)=>a+num(b),0), saida=forn+num(d.despesa);let f=data.fluxo[ref], entrada=num(f.vendas)+num(f.pronampe)+num(f.cdb);return{forn,saida,entrada,saldo:entrada+saida};}
+function sum(arr){return arr.reduce((a,b)=>a+b,0)}
+function renderKPIs(){let venda=sum(months.map(m=>num(data.fluxo[m[0]].vendas))), forn=sum(months.map(m=>totals(m[0]).forn)), desp=sum(months.map(m=>num(data.despesas[m[0]].despesa))), saldo=sum(months.map(m=>totals(m[0]).saldo)); document.getElementById('kpis').innerHTML=`<div class="card kpi"><small>Vendas acumuladas</small><strong>${brl(venda)}</strong></div><div class="card kpi"><small>Fornecedores</small><strong class="bad">${brl(forn)}</strong></div><div class="card kpi"><small>Despesas fixas</small><strong class="bad">${brl(desp)}</strong></div><div class="card kpi"><small>Saldo projetado</small><strong class="${saldo>=0?'good':'bad'}">${brl(saldo)}</strong></div>`;}
+function renderResumo(){let rows='<tr><th>Ref</th><th>Mês</th><th>Entradas</th><th>Fornec.</th><th>Despesas</th><th>Saldo</th></tr>'; months.forEach(m=>{let t=totals(m[0]), d=data.despesas[m[0]];rows+=`<tr><td>${m[0]}</td><td>${m[1]}</td><td>${brl(t.entrada)}</td><td class="bad">${brl(t.forn)}</td><td class="bad">${brl(d.despesa)}</td><td class="${t.saldo>=0?'good':'bad'}">${brl(t.saldo)}</td></tr>`}); document.getElementById('tblResumo').innerHTML=rows; let vendas=sum(months.map(m=>num(data.fluxo[m[0]].vendas))), metaAlvo=sum(months.map(m=>totals(m[0]).forn))*data.config.multiplicador+sum(months.map(m=>num(data.despesas[m[0]].despesa))); metaAlvo=Math.abs(metaAlvo); let pct=metaAlvo?Math.min(100,(vendas/metaAlvo)*100):0; document.getElementById('metaBar').style.width=pct+'%'; document.getElementById('metaTxt').innerText=`${pct.toFixed(1).replace('.',',')}% da meta alvo (${brl(metaAlvo)})`; let saldo=sum(months.map(m=>totals(m[0]).saldo)); document.getElementById('diagnostico').innerText=saldo>=0?'Pela projeção atual, as entradas cobrem as saídas planejadas. Continue acompanhando os meses com saldo menor.':'Pela projeção atual, existe saldo negativo. Vale revisar compras futuras, despesas fixas ou meta de venda mensal.';}
+function renderDespesas(){let h='<tr><th>Ref</th><th>Mês</th>'+data.fornecedores.map((x,i)=>`<th>${x}</th>`).join('')+'<th>Despesas</th><th>Total fornecedores</th><th>Total saída</th><th>Pronampe</th></tr>', body=''; months.forEach(m=>{let d=data.despesas[m[0]], t=totals(m[0]); body+=`<tr><td>${m[0]}</td><td><input class="month" value="${d.mes}" onchange="data.despesas['${m[0]}'].mes=this.value;save();renderAll()"></td>`+data.fornecedores.map((_,i)=>`<td><input type="number" step="0.01" value="${d.forn[i]||0}" onchange="data.despesas['${m[0]}'].forn[${i}]=num(this.value);save();renderAll()"></td>`).join('')+`<td><input type="number" step="0.01" value="${d.despesa||0}" onchange="data.despesas['${m[0]}'].despesa=num(this.value);save();renderAll()"></td><td>${brl(t.forn)}</td><td>${brl(t.saida)}</td><td><input type="number" step="0.01" value="${d.pronampe||0}" onchange="data.despesas['${m[0]}'].pronampe=num(this.value);save();renderAll()"></td></tr>`}); document.getElementById('tblDespesas').innerHTML=h+body;}
+function renderFluxo(){let h='<tr><th>Ref</th><th>Mês</th><th>Vendas</th><th>Pronampe</th><th>CDB</th><th>Total entrada</th><th>Saídas</th><th>Saldo</th></tr>', body=''; months.forEach(m=>{let f=data.fluxo[m[0]],t=totals(m[0]); body+=`<tr><td>${m[0]}</td><td>${m[1]}</td><td><input type="number" step="0.01" value="${f.vendas||0}" onchange="data.fluxo['${m[0]}'].vendas=num(this.value);save();renderAll()"></td><td><input type="number" step="0.01" value="${f.pronampe||0}" onchange="data.fluxo['${m[0]}'].pronampe=num(this.value);save();renderAll()"></td><td><input type="number" step="0.01" value="${f.cdb||0}" onchange="data.fluxo['${m[0]}'].cdb=num(this.value);save();renderAll()"></td><td>${brl(t.entrada)}</td><td>${brl(t.saida)}</td><td class="${t.saldo>=0?'good':'bad'}">${brl(t.saldo)}</td></tr>`}); document.getElementById('tblFluxo').innerHTML=h+body;}
+function renderConfig(){capital.value=data.config.capital;cdb.value=data.config.cdbPct;multiplicador.value=data.config.multiplicador;} ['capital','cdb','multiplicador'].forEach(id=>setTimeout(()=>{let el=document.getElementById(id);el.onchange=()=>{data.config[id==='capital'?'capital':id==='cdb'?'cdbPct':'multiplicador']=num(el.value);save();renderAll();}},0));
+function renderAll(){renderKPIs();renderResumo();renderDespesas();renderFluxo();renderConfig();}
+function addFornecedor(){let nome=prompt('Nome do novo fornecedor/categoria:'); if(!nome)return; data.fornecedores.push(nome); months.forEach(m=>data.despesas[m[0]].forn.push(0)); save();renderAll();}
+function addMes(){alert('A versão inicial já está preparada para 12 meses de 2026. Posso adaptar depois para anos futuros.');}
+function exportJSON(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='backup-planejamento-familykids.json';a.click();}
+function importJSON(e){let file=e.target.files[0]; if(!file)return; let r=new FileReader(); r.onload=()=>{data=JSON.parse(r.result);save();renderAll();}; r.readAsText(file);}
+function downloadCSV(){let csv='Ref;Mes;Vendas;Entradas;Fornecedores;Despesas;Saidas;Saldo\n'+months.map(m=>{let t=totals(m[0]),f=data.fluxo[m[0]],d=data.despesas[m[0]];return [m[0],m[1],f.vendas,t.entrada,t.forn,d.despesa,t.saida,t.saldo].join(';')}).join('\n');let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='resumo-planejamento-familykids.csv';a.click();}
+function resetApp(){if(confirm('Restaurar dados iniciais da planilha?')){data=structuredClone(defaultData);save();renderAll();}}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab,section').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active')});renderAll();
+</script>
+</body>
+</html>
